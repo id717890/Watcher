@@ -14,5 +14,6 @@ namespace Watcher.Interface.Presenter
         //void OnShowNormalForm();
         //void OnSetIgnore(Guid id, bool isIgnore);
         //void OnSetIgnoreAllModules(bool isIgnore);
+        void OnRefreshView();
     }
 }

@@ -49,5 +49,11 @@
     <Compile Include="View\IWatcherView.cs" />
     <Compile Include="View\IView.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Watcher.Data\Watcher.Data.csproj">
+      <Project>{E2F9D992-AD1C-4416-8475-9329F780FC2F}</Project>
+      <Name>Watcher.Data</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

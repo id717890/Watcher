@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Watcher.Data;
+using System.ComponentModel;
 
 namespace Watcher.Interface.View
 {
@@ -19,9 +21,9 @@ namespace Watcher.Interface.View
         //Boolean IsMnaNumber { get; set; }
         //string[] Enginers { set; }
         //string Enginer { get; set; }
-        //string Order { get; set; }
+        string SelectedGroup { get; set; }
 
-        ////void SetModel(IMnaViewModel model);
-        //void RenderGrid(IDiagnosticViewModel model);
+        void SetModel(IWatcherViewModel model);
+        void RenderGrid(BindingList<GridData> model);
     }
 }

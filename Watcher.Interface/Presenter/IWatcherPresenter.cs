@@ -4,6 +4,6 @@
     {
         //void VerifyAllStatements();
         //void ReadConfig();
-        //void OnRefreshView();
+        void OnRefreshView();
     }
 }

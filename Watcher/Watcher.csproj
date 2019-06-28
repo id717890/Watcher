@@ -33,6 +33,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="DataGridViewGrouper, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>OPC libraries\DataGridViewGrouper.dll</HintPath>
+    </Reference>
     <Reference Include="Ninject, Version=3.3.4.0, Culture=neutral, PublicKeyToken=c7192dc5380945e7, processorArchitecture=MSIL">
       <HintPath>..\packages\Ninject.3.3.4\lib\net45\Ninject.dll</HintPath>
     </Reference>
@@ -70,6 +74,9 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="WatcherView.resx">
+      <DependentUpon>WatcherView.cs</DependentUpon>
+    </EmbeddedResource>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -85,11 +92,20 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="OPC libraries\DataGridViewGrouper.dll" />
     <Content Include="OPC libraries\OpcNetApi.Com.dll" />
     <Content Include="OPC libraries\OpcNetApi.dll" />
     <Content Include="OPC libraries\OpcNetApi.Xml.dll" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Watcher.Data\Watcher.Data.csproj">
+      <Project>{E2F9D992-AD1C-4416-8475-9329F780FC2F}</Project>
+      <Name>Watcher.Data</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Watcher.Infrastructure\Watcher.Infrastructure.csproj">
+      <Project>{AA4509D3-A434-4802-B058-B800EC376507}</Project>
+      <Name>Watcher.Infrastructure</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Watcher.Interface\Watcher.Interface.csproj">
       <Project>{525a8840-1e00-463c-870b-64f70676d2be}</Project>
       <Name>Watcher.Interface</Name>
