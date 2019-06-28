@@ -51,10 +51,16 @@
   <ItemGroup>
     <Compile Include="CompositeModule.cs" />
     <Compile Include="CompositionRoot.cs" />
-    <Compile Include="Presenter.cs" />
+    <Compile Include="WatcherPresenter.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ViewModel.cs" />
+    <Compile Include="WatcherView.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="WatcherView.Designer.cs">
+      <DependentUpon>WatcherView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="WatcherViewModel.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -82,6 +88,12 @@
     <Content Include="OPC libraries\OpcNetApi.Com.dll" />
     <Content Include="OPC libraries\OpcNetApi.dll" />
     <Content Include="OPC libraries\OpcNetApi.Xml.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Watcher.Interface\Watcher.Interface.csproj">
+      <Project>{525a8840-1e00-463c-870b-64f70676d2be}</Project>
+      <Name>Watcher.Interface</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

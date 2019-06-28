@@ -41,7 +41,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Model\IWatcherViewModel.cs" />
+    <Compile Include="Presenter\IWatcherPresenter.cs" />
+    <Compile Include="Presenter\IWatcherPresenterCallback.cs" />
+    <Compile Include="Presenter\IPresenter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="View\IWatcherView.cs" />
+    <Compile Include="View\IView.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
