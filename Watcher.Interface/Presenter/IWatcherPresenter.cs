@@ -2,8 +2,8 @@
 {
     public interface IWatcherPresenter: IPresenter
     {
-        //void VerifyAllStatements();
+        void VerifyAllStatements();
         //void ReadConfig();
-        void OnRefreshView();
+        //void OnRefreshView();
     }
 }

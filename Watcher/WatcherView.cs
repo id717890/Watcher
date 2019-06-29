@@ -16,6 +16,11 @@ namespace Watcher
 {
     public partial class WatcherView : Form, IWatcherView
     {
+        private Color _colorUndefined = Color.LightGray;
+        private Color _colorVerified = Color.LightGreen;
+        private Color _colorNotVerified = Color.Red;
+        private Color _colorIgnored = Color.BlueViolet;
+
         public string SelectedGroup { get => cbGroups.Text; set => cbGroups.Text = value; }
 
         public WatcherView()
@@ -30,6 +35,15 @@ namespace Watcher
             {
                 callback.OnRefreshView();
             };
+            btnStartWatch.Click += (sender, e) =>
+            {
+                callback.OnStarWatch();
+                callback.OnCheckOpc();
+            };
+            btnStopWatch.Click += (sender, e) =>
+            {
+                callback.OnStopWatch();
+            };
         }
 
         private void InitializeColumnsOfGrid()
@@ -40,11 +54,14 @@ namespace Watcher
             //{
             //    DataPropertyName = "ServerId"
             //});
-            dgWatch.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "ServerCaption", Name = "ServerCaption", HeaderText = "Сервер" });
             dgWatch.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "StatementCaption", Name = "StatementCaption", HeaderText = "Параметр" });
             dgWatch.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Value", Name = "Value", HeaderText = "Статус" });
             dgWatch.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Quality", Name = "Quality", HeaderText = "Качество" });
-            //dgDiagnostic.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "IsVerified", Name = "IsVerified", HeaderText = "IsVerified" });
+            dgWatch.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "IsVerified", Name = "IsVerified", HeaderText = "IsVerified" });
+            dgWatch.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "VerifyIf", Name = "VerifyIf", HeaderText = "VerifyIf" });
+            dgWatch.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "ParamType", Name = "ParamType", HeaderText = "ParamType" });
+            dgWatch.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "AllowBadQuality", Name = "AllowBadQuality", HeaderText = "AllowBadQuality" });
+            dgWatch.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Test", Name = "Test", HeaderText = "Test" });
         }
 
         public void RenderGrid(BindingList<GridData> model)
@@ -157,6 +174,34 @@ namespace Watcher
                 }
                 cbGroups.Items.Add("Все");
                 cbGroups.SelectedIndex = cbGroups.Items.Count - 1;
+            }
+        }
+
+        private void dgWatch_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {
+                var statement = dgWatch.Rows[e.RowIndex].DataBoundItem as GridData;
+                if (statement != null)
+                {
+                    if (string.IsNullOrEmpty(statement.Value) && !statement.IsIgnore)
+                    {
+                    dgWatch.Rows[e.RowIndex].DefaultCellStyle.BackColor = _colorUndefined;
+                    }
+                    else if ((string.IsNullOrEmpty(statement.Value) && statement.IsIgnore) || (!string.IsNullOrEmpty(statement.Value) && statement.IsIgnore))
+                    {
+                    dgWatch.Rows[e.RowIndex].DefaultCellStyle.BackColor = _colorIgnored;
+                    }
+                    else
+                    {
+                        switch (statement.IsVerified)
+                        {
+                            case true:
+                            dgWatch.Rows[e.RowIndex].DefaultCellStyle.BackColor = _colorVerified;
+                                break;
+                            case false:
+                            dgWatch.Rows[e.RowIndex].DefaultCellStyle.BackColor = _colorNotVerified;
+                                break;
+                        }
+                    }
             }
         }
     }

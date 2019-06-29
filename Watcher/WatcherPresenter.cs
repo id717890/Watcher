@@ -18,8 +18,13 @@ namespace Watcher
     {
         private readonly IWatcherView _view;
         private readonly IWatcherViewModel _model;
+        private bool _isWatching;
+        private IDictionary<Guid, Opc.Da.Server> _opcServers;
 
-        public WatcherPresenter(IWatcherView view, IWatcherViewModel model) 
+        private string[] _badQualityVariants = Configs.BadQualityVariants();
+        private string[] _goodQualityVariants = Configs.GoodQualityVariants();
+
+        public WatcherPresenter(IWatcherView view, IWatcherViewModel model)
         {
             _view = view;
             _model = model;
@@ -44,15 +49,15 @@ namespace Watcher
                     Id = Guid.NewGuid(),
                     Tag = separated[0],
                     StatementCaption = separated[1],
-                    AllowBadQuality = false,
+                    ParamType = separated[2],
+                    AllowBadQuality = bool.Parse(separated[3]),
+                    VerifyIf = Convert.ToBoolean(separated[4]),
                     IsIgnore = false,
                     IsVerified = false,
-                    ParamType = null,
                     Quality = null,
-                    Value = null,
-                    VerifyIf = null
+                    Value = null
                 };
-            } 
+            }
             catch
             {
                 return null;
@@ -67,18 +72,18 @@ namespace Watcher
                 var directory = Configs.AppFolder + "\\" + Configs.GroupListFolder;
                 if (Directory.Exists(directory))
                 {
-                    var files = Directory.GetFiles(directory, "*" + Configs.GroupListFilePrefix +".txt");
+                    var files = Directory.GetFiles(directory, "*" + Configs.GroupListFilePrefix + ".txt");
                     if (files.Any())
                     {
                         string line;
                         foreach (var file in files)
                         {
-                            var groupName = file.Replace(directory + "\\", "").Replace(Configs.GroupListFilePrefix+".txt", "");
+                            var groupName = file.Replace(directory + "\\", "").Replace(Configs.GroupListFilePrefix + ".txt", "");
                             var fileBody = new StreamReader(file);
-                            while((line = fileBody.ReadLine()) !=null)
+                            while ((line = fileBody.ReadLine()) != null)
                             {
                                 var data = SeparateLine(line);
-                                if (data !=null)
+                                if (data != null)
                                 {
                                     data.GroupCaption = groupName;
                                     modelGrid.Add(data);
@@ -86,178 +91,10 @@ namespace Watcher
                             }
                             fileBody.Close();
                         }
-                    } else MessageBox.Show("Папка '" + Configs.GroupListFolder + "' не содержит ни одного файла конфигурации", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    //if (File.Exists(Configs.AppFolder + "\\configs\\" + Configs.ConfigFileName))
-                    //{
-                    //    var xdoc = XDocument.Load(Configs.AppFolder + "\\configs\\" + Configs.ConfigFileName);
-                    //    var diagnosticRoot = xdoc.Element("diagnostic");
-                    //    if (diagnosticRoot != null)
-                    //    {
-                    //        var serverList = diagnosticRoot.Elements("server");
-                    //        if (serverList != null && serverList.Any())
-                    //        {
-                    //            foreach (var server in serverList)
-                    //            {
-                    //                if (server != null)
-                    //                {
-                    //                    XAttribute captionServer = server.Attribute("caption");
-                    //                    XAttribute connectionStringServer = server.Attribute("connection");
-                    //                    XAttribute orderServer = server.Attribute("order");
-                    //                    XAttribute hostName = server.Attribute("hostname");
-                    //                    XAttribute user = server.Attribute("user");
-                    //                    XAttribute password = server.Attribute("password");
-                    //                    XAttribute domain = server.Attribute("domain");
-                    //                    if ((captionServer != null) && (connectionStringServer != null) && (orderServer != null))
-                    //                    {
-                    //                        var serverItem = new Server
-                    //                        {
-                    //                            Id = Guid.NewGuid(),
-                    //                            Connectionstring = connectionStringServer.Value,
-                    //                            Caption = captionServer.Value,
-                    //                            HostName = hostName != null ? hostName.Value : null,
-                    //                            User = user != null ? user.Value : null,
-                    //                            Password = password != null ? password.Value : null,
-                    //                            Domain = domain != null ? domain.Value : null,
-                    //                            Order = int.TryParse(orderServer.Value, out var order) ? order : 0,
-                    //                        };
-
-                    //                        #region Parse <tag>
-                    //                        var tagsList = server.Elements("tag");
-                    //                        if (tagsList != null && tagsList.Any())
-                    //                        {
-                    //                            //var tagListItems = new List<OpcStatement>();
-                    //                            foreach (var statement in tagsList)
-                    //                            {
-                    //                                var statementCaption = statement.Attribute("caption");
-                    //                                var statementType = statement.Attribute("type");
-                    //                                var statementVerifyIf = statement.Attribute("verifyif");
-                    //                                var allowQualityBad = statement.Attribute("allowbad");
-                    //                                var module = statement.Attribute("module");
-
-                    //                                var statementTag = statement.Value;
-
-                    //                                if (!string.IsNullOrEmpty(statementTag) && statementCaption != null && statementType != null && statementVerifyIf != null)
-                    //                                {
-                    //                                    var statementItem = new OpcStatement
-                    //                                    {
-                    //                                        Caption = statementCaption.Value,
-                    //                                        TagValue = statementTag,
-                    //                                        IsModule = module != null ? true : false,
-                    //                                        Id = Guid.NewGuid()
-                    //                                    };
-                    //                                    if (allowQualityBad != null)
-                    //                                    {
-                    //                                        if (Boolean.TryParse(allowQualityBad.Value, out bool result))
-                    //                                            statementItem.AllowBadQuality = result;
-                    //                                        else statementItem.AllowBadQuality = false;
-                    //                                    }
-                    //                                    else statementItem.AllowBadQuality = false;
-
-                    //                                    switch (statementType.Value)
-                    //                                    {
-                    //                                        case "bool":
-                    //                                            {
-                    //                                                statementItem.ParamType = "bool";
-                    //                                                statementItem.VerifyIf = Convert.ToBoolean(statementVerifyIf.Value);
-                    //                                                break;
-                    //                                            }
-                    //                                        case "int":
-                    //                                            {
-                    //                                                statementItem.ParamType = "int";
-                    //                                                statementItem.VerifyIf = Convert.ToInt32(statementVerifyIf.Value);
-                    //                                                break;
-                    //                                            }
-                    //                                        default:
-                    //                                            {
-                    //                                                statementItem.ParamType = "int";
-                    //                                                statementItem.VerifyIf = (int)statementVerifyIf;
-                    //                                                break;
-                    //                                            }
-                    //                                    }
-
-                    //                                    modelGrid.Add(new GridData
-                    //                                    {
-                    //                                        ServerId = serverItem.Id,
-                    //                                        Connectionstring = serverItem.Connectionstring,
-                    //                                        ServerCaption = serverItem.Caption,
-                    //                                        HostName = serverItem.HostName,
-                    //                                        User = serverItem.User,
-                    //                                        Password = serverItem.Password,
-                    //                                        Domain = serverItem.Domain,
-                    //                                        Order = serverItem.Order,
-
-                    //                                        StatementId = statementItem.Id,
-                    //                                        AllowBadQuality = statementItem.AllowBadQuality,
-                    //                                        IsVerified = statementItem.IsVerified,
-                    //                                        ParamType = statementItem.ParamType,
-                    //                                        StatementCaption = statementItem.Caption,
-                    //                                        TagValue = statementItem.TagValue,
-                    //                                        VerifyIf = statementItem.VerifyIf,
-                    //                                        Quality = statementItem.Quality,
-                    //                                        ParameterStatement = ParameterStatement.OpcTag,
-                    //                                        IsModule = statementItem.IsModule
-                    //                                    });
-                    //                                }
-                    //                            }
-                    //                        }
-                    //                        #endregion
-
-                    //                        #region Parse <service>
-                    //                        var servicesList = server.Elements("service");
-                    //                        if (servicesList != null && servicesList.Any())
-                    //                        {
-                    //                            var serviceListItems = new List<ServiceStatement>();
-                    //                            foreach (var service in servicesList)
-                    //                            {
-                    //                                var serviceCaption = service.Attribute("caption");
-                    //                                var serviceVerifyIf = service.Attribute("verifyif");
-                    //                                var serviceName = service.Value;
-
-                    //                                if (!string.IsNullOrEmpty(serviceName) && serviceCaption != null && serviceVerifyIf != null)
-                    //                                {
-                    //                                    var serviceItem = new ServiceStatement
-                    //                                    {
-                    //                                        Id = Guid.NewGuid(),
-                    //                                        Caption = serviceCaption.Value,
-                    //                                        VerifyIf = serviceVerifyIf.Value,
-                    //                                        TagValue = serviceName
-                    //                                    };
-                    //                                    modelGrid.Add(new GridData
-                    //                                    {
-                    //                                        ServerId = serverItem.Id,
-                    //                                        Connectionstring = serverItem.Connectionstring,
-                    //                                        ServerCaption = serverItem.Caption,
-                    //                                        HostName = serverItem.HostName,
-                    //                                        User = serverItem.User,
-                    //                                        Password = serverItem.Password,
-                    //                                        Domain = serverItem.Domain,
-                    //                                        Order = serverItem.Order,
-
-                    //                                        StatementId = serviceItem.Id,
-                    //                                        IsVerified = serviceItem.IsVerified,
-                    //                                        StatementCaption = serviceItem.Caption,
-                    //                                        TagValue = serviceItem.TagValue,
-                    //                                        VerifyIf = serviceItem.VerifyIf,
-                    //                                        ParameterStatement = ParameterStatement.Service
-                    //                                    });
-                    //                                }
-                    //                            }
-                    //                            serverItem.ServiceStatements = serviceListItems;
-                    //                        }
-                    //                        #endregion
-                    //                        //model.Add(serverItem);
-                    //                    }
-                    //                }
-                    //            }
-                    //        }
-                    //        else MessageBox.Show("Список серверов для диагностики пуст", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    //    }
-                    //    else MessageBox.Show("Корневой элемент 'diagnostic' не обнаружен", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-
-                    //}
-                    //else MessageBox.Show(string.Format("Файл конфигурации '{0}' не обнаружена в дериктории configs", Configs.ConfigFileName), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                    else MessageBox.Show("Папка '" + Configs.GroupListFolder + "' не содержит ни одного файла конфигурации", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
-                else MessageBox.Show("Папка '" + Configs.GroupListFolder +"' не обнаружена в текущей дериктории", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                else MessageBox.Show("Папка '" + Configs.GroupListFolder + "' не обнаружена в текущей дериктории", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 _model.GridDataList = modelGrid;
                 _view.SetModel(_model);
                 OnRefreshView();
@@ -268,10 +105,210 @@ namespace Watcher
             }
         }
 
+        public void OnCheckOpc()
+        {
+            _opcServers = new Dictionary<Guid, Opc.Da.Server>();
+                
+            // 1st: Create a server object and connect to the RSLinx OPC Server
+            //var url = new Opc.URL("opcda://10.85.5.111/Infinity.OPCServer");
+            var url = new Opc.URL(Configs.OpcConnectionString);
+            var fact = new OpcCom.Factory();
+            var opcServer = new Opc.Da.Server(fact, null);
+
+            //2nd: Connect to the created server
+            try
+            {
+                try
+                {
+                    opcServer.Connect(url, new Opc.ConnectData(new System.Net.NetworkCredential()));
+
+                    var id = Guid.NewGuid();
+                    _opcServers.Add(id, opcServer);
+
+                    var tags = _model.GridDataList.Distinct();
+                    if (tags != null && tags.Any())
+                    {
+                        //3rd Create a group if items            
+                        var groupState = new Opc.Da.SubscriptionState();
+                        groupState.Name = "Group of " + id;
+                        groupState.UpdateRate = 1000;// this isthe time between every reads from OPC server
+                        groupState.Active = true;//this must be true if you the group has to read value
+                        var groupRead = (Opc.Da.Subscription)opcServer.CreateSubscription(groupState);
+                        groupRead.DataChanged += new Opc.Da.DataChangedEventHandler(TagValue_DataChanged);//callback when the data are readed
+                        var items = new List<Opc.Da.Item>();
+
+                        foreach (var tagItem in tags)
+                        {
+                            items.Add(new Opc.Da.Item
+                            {
+                                ItemName = tagItem.Tag,
+                                ClientHandle = id
+                            });
+                        }
+                        groupRead.AddItems(items.ToArray());
+                    }
+                }
+                catch
+                {
+                    MessageBox.Show("Сервер " + url + " недостпуен.", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show("Ошибка при чтении тега OPC с сервера " + url + ". " + e.Message, "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+
+            //VerifyAllStatements();
+
+
+
+
+
+            //// 1st: Create a server object and connect to the RSLinx OPC Server
+            ////var url = new Opc.URL("opcda://10.85.5.111/Infinity.OPCServer");
+            //var url = new Opc.URL(Configs.OpcConnectionString);
+            //var fact = new OpcCom.Factory();
+            //var opcServer = new Opc.Da.Server(fact, null);
+
+            ////2nd: Connect to the created server
+            //try
+            //{
+            //    try
+            //    {
+            //        opcServer.Connect(url, new Opc.ConnectData(new System.Net.NetworkCredential()));
+            //        var tags = _model.GridDataList.Distinct();
+            //        if (tags != null && tags.Any())
+            //        {
+            //            //3rd Create a group if items            
+            //            var groupState = new Opc.Da.SubscriptionState();
+            //            groupState.Name = "Group of OPC";
+            //            groupState.UpdateRate = 1000;// this isthe time between every reads from OPC server
+            //            groupState.Active = true;//this must be true if you the group has to read value
+            //            var groupRead = (Opc.Da.Subscription)opcServer.CreateSubscription(groupState);
+            //            groupRead.DataChanged += new Opc.Da.DataChangedEventHandler(TagValue_DataChanged);//callback when the data are readed
+            //            var items = new List<Opc.Da.Item>();
+
+            //            foreach (var tagItem in tags)
+            //            {
+            //                items.Add(new Opc.Da.Item
+            //                {
+            //                    ItemName = tagItem.Tag,
+            //                    ClientHandle = Guid.NewGuid()
+            //                });
+            //            }
+            //            groupRead.AddItems(items.ToArray());
+            //        }
+            //    }
+            //    catch
+            //    {
+            //        MessageBox.Show("Сервер " + url + " недостпуен.", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            //    }
+            //}
+            //catch (Exception e)
+            //{
+            //    MessageBox.Show("Ошибка при чтении тега OPC с сервера " + url + ". " + e.Message, "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            //}
+
+            ////VerifyAllStatements();
+        }
+
+        private void TagValue_DataChanged(object subscriptionHandle, object requestHandle, Opc.Da.ItemValueResult[] values)
+        {
+            for (int i = 0; i < values.Length; i++)
+            {
+                var tagGrid = _model.GridDataList.SingleOrDefault(x => x.Tag == values[i].ItemName);
+                if (tagGrid != null)
+                {
+                    tagGrid.Value = values[i].Value.ToString();
+                    tagGrid.Quality = values[i].Quality.ToString();
+                }
+            }
+            VerifyAllStatements();
+        }
+
         public void OnRefreshView()
         {
             var data = _model.GridDataList.Where(x => x.GroupCaption == _view.SelectedGroup).ToList();
             if (data.Any()) _view.RenderGrid(new BindingList<GridData>(data)); else _view.RenderGrid(_model.GridDataList);
+        }
+
+        private void DisconnectOpcServers()
+        {
+            if (_opcServers != null && _opcServers.Any()) foreach (var server in _opcServers.Where(x => x.Value.IsConnected)) server.Value.Disconnect();
+        }
+
+        private void SetModelNotVerified()
+        {
+            if (_model != null && _model.GridDataList != null)
+                foreach (var statement in _model.GridDataList)
+                {
+                    statement.Quality = string.Empty;
+                    statement.Value = null;
+                    statement.IsVerified = false;
+                }
+        }
+
+        public void OnStarWatch()
+        {
+            _isWatching = true;
+        }
+
+        public void OnStopWatch()
+        {
+            DisconnectOpcServers();
+            SetModelNotVerified();
+            _isWatching = false;
+        }
+
+        public void VerifyAllStatements()
+        {
+            if (_isWatching)
+            {
+                if (_model.GridDataList != null && _model.GridDataList.Any())
+                {
+                    foreach (var tag in _model.GridDataList)
+                    {
+                        if (!tag.AllowBadQuality && _badQualityVariants.Contains(tag.Quality.ToLower()))
+                        {
+                            tag.IsVerified = false;
+                            tag.Test = "1";
+                        }
+                        else if (tag.AllowBadQuality && _badQualityVariants.Contains(tag.Quality.ToLower()))
+                        {
+                            tag.IsVerified = true;
+                            tag.Test = "2";
+                        }
+                        else if ((tag.AllowBadQuality && _goodQualityVariants.Contains(tag.Quality.ToLower()))
+                            || (!tag.AllowBadQuality && _goodQualityVariants.Contains(tag.Quality.ToLower())))
+                        {
+                            switch (tag.ParamType)
+                            {
+                                case "bool":
+                                    {
+                                        try
+                                        {
+                                            tag.Test = "3";
+                                            var value = bool.Parse(tag.Value);
+                                            tag.IsVerified = value == (bool)tag.VerifyIf;
+                                            tag.Test = "33";
+                                        }
+                                        catch (Exception e) { tag.Test = e.Message; }
+                                        break;
+                                    }
+                                default:
+                                    tag.IsVerified = false;
+                                    tag.Test = "4";
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            tag.IsVerified = false;
+                            tag.Test = "5";
+                        }
+                    }
+                }
+            }
         }
     }
 }

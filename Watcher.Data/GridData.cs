@@ -3,7 +3,7 @@ using System.ComponentModel;
 
 namespace Watcher.Data
 {
-    public class GridData
+    public class GridData: INotifyPropertyChanged
     {
         public Guid Id { get; set; }
         public string GroupCaption { get; set; }
@@ -28,6 +28,7 @@ namespace Watcher.Data
 
         public string ParamType { get; set; }
         public bool AllowBadQuality { get; set; }
+        public string Test { get; set; }
 
         void NotifyChanged(string prop)
         {
