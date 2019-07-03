@@ -25,5 +25,6 @@ namespace Watcher.Interface.View
 
         void SetModel(IWatcherViewModel model);
         void RenderGrid(BindingList<GridData> model);
+        void RenderGridGroupsColor(BindingList<GroupColorData> model);
     }
 }

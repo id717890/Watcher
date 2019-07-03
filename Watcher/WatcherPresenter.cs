@@ -96,6 +96,7 @@ namespace Watcher
                 }
                 else MessageBox.Show("Папка '" + Configs.GroupListFolder + "' не обнаружена в текущей дериктории", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 _model.GridDataList = modelGrid;
+                _model.FillGroupColorList();
                 _view.SetModel(_model);
                 OnRefreshView();
             }
@@ -157,59 +158,6 @@ namespace Watcher
             {
                 MessageBox.Show("Ошибка при чтении тега OPC с сервера " + url + ". " + e.Message, "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
-
-            //VerifyAllStatements();
-
-
-
-
-
-            //// 1st: Create a server object and connect to the RSLinx OPC Server
-            ////var url = new Opc.URL("opcda://10.85.5.111/Infinity.OPCServer");
-            //var url = new Opc.URL(Configs.OpcConnectionString);
-            //var fact = new OpcCom.Factory();
-            //var opcServer = new Opc.Da.Server(fact, null);
-
-            ////2nd: Connect to the created server
-            //try
-            //{
-            //    try
-            //    {
-            //        opcServer.Connect(url, new Opc.ConnectData(new System.Net.NetworkCredential()));
-            //        var tags = _model.GridDataList.Distinct();
-            //        if (tags != null && tags.Any())
-            //        {
-            //            //3rd Create a group if items            
-            //            var groupState = new Opc.Da.SubscriptionState();
-            //            groupState.Name = "Group of OPC";
-            //            groupState.UpdateRate = 1000;// this isthe time between every reads from OPC server
-            //            groupState.Active = true;//this must be true if you the group has to read value
-            //            var groupRead = (Opc.Da.Subscription)opcServer.CreateSubscription(groupState);
-            //            groupRead.DataChanged += new Opc.Da.DataChangedEventHandler(TagValue_DataChanged);//callback when the data are readed
-            //            var items = new List<Opc.Da.Item>();
-
-            //            foreach (var tagItem in tags)
-            //            {
-            //                items.Add(new Opc.Da.Item
-            //                {
-            //                    ItemName = tagItem.Tag,
-            //                    ClientHandle = Guid.NewGuid()
-            //                });
-            //            }
-            //            groupRead.AddItems(items.ToArray());
-            //        }
-            //    }
-            //    catch
-            //    {
-            //        MessageBox.Show("Сервер " + url + " недостпуен.", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            //    }
-            //}
-            //catch (Exception e)
-            //{
-            //    MessageBox.Show("Ошибка при чтении тега OPC с сервера " + url + ". " + e.Message, "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            //}
-
-            ////VerifyAllStatements();
         }
 
         private void TagValue_DataChanged(object subscriptionHandle, object requestHandle, Opc.Da.ItemValueResult[] values)
@@ -229,7 +177,14 @@ namespace Watcher
         public void OnRefreshView()
         {
             var data = _model.GridDataList.Where(x => x.GroupCaption == _view.SelectedGroup).ToList();
-            if (data.Any()) _view.RenderGrid(new BindingList<GridData>(data)); else _view.RenderGrid(_model.GridDataList);
+            if (data.Any())
+            {
+                _view.RenderGrid(new BindingList<GridData>(data));
+            } else
+            {
+                _view.RenderGrid(_model.GridDataList);
+            }
+            _view.RenderGridGroupsColor(_model.GroupColorDataList);
         }
 
         private void DisconnectOpcServers()
@@ -245,6 +200,11 @@ namespace Watcher
                     statement.Quality = string.Empty;
                     statement.Value = null;
                     statement.IsVerified = false;
+                }
+            if (_model != null && _model.GroupColorDataList != null)
+                foreach (var group in _model.GroupColorDataList)
+                {
+                    group.IsVerified = null;
                 }
         }
 
@@ -271,12 +231,10 @@ namespace Watcher
                         if (!tag.AllowBadQuality && _badQualityVariants.Contains(tag.Quality.ToLower()))
                         {
                             tag.IsVerified = false;
-                            tag.Test = "1";
                         }
                         else if (tag.AllowBadQuality && _badQualityVariants.Contains(tag.Quality.ToLower()))
                         {
                             tag.IsVerified = true;
-                            tag.Test = "2";
                         }
                         else if ((tag.AllowBadQuality && _goodQualityVariants.Contains(tag.Quality.ToLower()))
                             || (!tag.AllowBadQuality && _goodQualityVariants.Contains(tag.Quality.ToLower())))
@@ -287,27 +245,27 @@ namespace Watcher
                                     {
                                         try
                                         {
-                                            tag.Test = "3";
                                             var value = bool.Parse(tag.Value);
                                             tag.IsVerified = value == (bool)tag.VerifyIf;
-                                            tag.Test = "33";
                                         }
                                         catch (Exception e) { tag.Test = e.Message; }
                                         break;
                                     }
                                 default:
                                     tag.IsVerified = false;
-                                    tag.Test = "4";
                                     break;
                             }
                         }
                         else
                         {
                             tag.IsVerified = false;
-                            tag.Test = "5";
                         }
                     }
                 }
+
+                if (_model.GroupColorDataList != null && _model.GroupColorDataList.Any())
+                    foreach (var group in _model.GroupColorDataList)
+                        group.IsVerified = !_model.GridDataList.Any(x => x.GroupCaption == group.GroupCaption && !x.IsVerified);
             }
         }
     }

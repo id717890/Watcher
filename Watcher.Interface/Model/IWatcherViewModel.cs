@@ -7,5 +7,8 @@ namespace Watcher.Interface.Model
     {
         //IEnumerable<Server> VerificationList { get; set; }
         BindingList<GridData> GridDataList { get; set; }
+        BindingList<GroupColorData> GroupColorDataList { get; }
+
+        void FillGroupColorList();
     }
 }
