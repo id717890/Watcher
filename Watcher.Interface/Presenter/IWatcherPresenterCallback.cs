@@ -1,4 +1,6 @@
-﻿namespace Watcher.Interface.Presenter
+﻿using System;
+
+namespace Watcher.Interface.Presenter
 {
     public interface IWatcherPresenterCallback
     {
@@ -10,7 +12,7 @@
         void OnRefreshView();
         //void OnShowMinimizeForm();
         //void OnShowNormalForm();
-        //void OnSetIgnore(Guid id, bool isIgnore);
+        void OnSetIgnore(Guid id, bool isIgnore);
         //void OnSetIgnoreAllModules(bool isIgnore);
     }
 }

@@ -265,7 +265,17 @@ namespace Watcher
 
                 if (_model.GroupColorDataList != null && _model.GroupColorDataList.Any())
                     foreach (var group in _model.GroupColorDataList)
-                        group.IsVerified = !_model.GridDataList.Any(x => x.GroupCaption == group.GroupCaption && !x.IsVerified);
+                        group.IsVerified = !_model.GridDataList.Any(x => x.GroupCaption == group.GroupCaption && !x.IsVerified && !x.IsIgnore);
+            }
+        }
+
+        public void OnSetIgnore(Guid id, bool isIgnore)
+        {
+            if (_model != null && _model.GridDataList != null && _model.GridDataList.Any())
+            {
+                var statement = _model.GridDataList.SingleOrDefault(x => x.Id == id);
+                if (statement != null) statement.IsIgnore = isIgnore;
+                VerifyAllStatements();
             }
         }
     }

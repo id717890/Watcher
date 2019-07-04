@@ -31,6 +31,22 @@ namespace Watcher
 
         public void Attach(IWatcherPresenterCallback callback)
         {
+            cmStartIgnore.Click += (sender, e) =>
+            {
+                var statement = dgWatch.Rows[dgWatch.CurrentCell.RowIndex].DataBoundItem as GridData;
+                if (statement != null)
+                {
+                    callback.OnSetIgnore(statement.Id, true);
+                }
+            };
+            cmEndIgnore.Click += (sender, e) =>
+            {
+                var statement = dgWatch.Rows[dgWatch.CurrentCell.RowIndex].DataBoundItem as GridData;
+                if (statement != null)
+                {
+                    callback.OnSetIgnore(statement.Id, false);
+                }
+            };
             cbGroups.SelectedIndexChanged += (sender, e) =>
             {
                 callback.OnRefreshView();
@@ -57,7 +73,7 @@ namespace Watcher
             dgWatch.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "StatementCaption", Name = "StatementCaption", HeaderText = "Параметр" });
             dgWatch.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Value", Name = "Value", HeaderText = "Статус" });
             dgWatch.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Quality", Name = "Quality", HeaderText = "Качество" });
-            //dgWatch.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "IsVerified", Name = "IsVerified", HeaderText = "IsVerified" });
+            dgWatch.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "IsIgnore", Name = "IsIgnore", HeaderText = "Игнорировать" });
             //dgWatch.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "VerifyIf", Name = "VerifyIf", HeaderText = "VerifyIf" });
             //dgWatch.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "ParamType", Name = "ParamType", HeaderText = "ParamType" });
             //dgWatch.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "AllowBadQuality", Name = "AllowBadQuality", HeaderText = "AllowBadQuality" });
@@ -65,7 +81,7 @@ namespace Watcher
 
             dgGroupsColor.AutoGenerateColumns = false;
             dgGroupsColor.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "GroupCaption", Name = "GroupCaption", HeaderText = "Группа" });
-            dgGroupsColor.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "IsVerified", Name = "IsVerified", HeaderText = "Статус"});
+            dgGroupsColor.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "IsVerified", Name = "IsVerified", HeaderText = "Статус" });
         }
 
         public void RenderGrid(BindingList<GridData> model)
@@ -146,5 +162,6 @@ namespace Watcher
             }
 
         }
+
     }
 }
